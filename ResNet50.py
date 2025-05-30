@@ -215,6 +215,32 @@ for epoch in range(num_epochs):
     epoch_acc = correct_train / total_train
     print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {epoch_loss:.4f}, Training Accuracy: {epoch_acc:.4f}")
 
+# Optional: Evaluate on validation set after each epoch or outside the loop
+
+model.eval()
+running_correct_val = 0
+running_total_val = 0
+# Initialize these lists BEFORE the validation loop
+y_true_epoch, y_pred_epoch, y_prob_epoch = [], [], []
+
+with torch.no_grad():
+    for inputs_val, labels_val in val_loader:
+        inputs_val, labels_val = inputs_val.to(device), labels_val.to(device)
+        # Squeeze validation labels as well
+        if labels_val.ndim > 1 and labels_val.size(-1) == 1:
+             labels_val = labels_val.squeeze(-1)
+
+        outputs_val = model(inputs_val)
+
+        _, predicted_val = torch.max(outputs_val.data, 1)
+        running_total_val += labels_val.size(0)
+        running_correct_val += (predicted_val == labels_val).sum().item()
+
+        probs_val = torch.softmax(outputs_val, dim=1)
+        y_true_epoch.extend(labels_val.cpu().numpy())
+        y_pred_epoch.extend(predicted_val.cpu().numpy())
+    
+
 # Collect probabilities for the positive class
 # For PneumoniaMNIST, typically label 1 corresponds to 'Pneumonia'
 if num_classes > 1:
