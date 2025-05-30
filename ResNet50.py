@@ -2,10 +2,10 @@ from IPython import get_ipython
 from IPython.display import display
 # %%
 # Install necessary libraries if not already present
-!pip install torch torchvision scikit-learn kagglehub
+# !pip install torch torchvision scikit-learn kagglehub
 
 # %%
-!pip install medmnist
+# !pip install medmnist
 # %%
 import torch
 import torch.nn as nn
