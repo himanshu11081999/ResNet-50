@@ -3,3 +3,4 @@ torchvision>=0.13
 scikit-learn>=1.0
 kagglehub
 medmnist
+IPython
