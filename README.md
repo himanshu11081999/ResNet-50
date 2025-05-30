@@ -10,11 +10,8 @@ This project fine-tunes a ResNet-50 model to classify chest X-ray images into pn
 ## 🚀 How to Run
 
 ```bash
-# Clone the repo and navigate into the directory
-pip install -r requirements.txt
-
 # Run the training script (inside a Jupyter notebook or Python script)
-python train_pneumonia_resnet50.py
+ResNet_50.ipynb
 ```
 
 ## 📊 Evaluation Metrics
