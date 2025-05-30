@@ -10,6 +10,7 @@ This project fine-tunes a ResNet-50 model to classify chest X-ray images into pn
 ## 🚀 How to Run
 
 ```bash
+
 source myenv/bin/activate
 
 # Clone the repo and navigate into the directory
