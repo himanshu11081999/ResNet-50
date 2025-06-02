@@ -20,24 +20,6 @@ import kagglehub # Import kagglehub for dataset download
 import medmnist # Import medmnist
 from medmnist.dataset import PneumoniaMNIST # Import the specific dataset class
 
-
-from IPython import get_ipython
-from IPython.display import display
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import datasets, models, transforms
-from sklearn.metrics import f1_score, roc_auc_score
-from torch.utils.data import DataLoader, random_split
-import os
-import shutil # Import shutil for removing directories
-import tarfile # Import tarfile for extracting .tar.gz files
-import kagglehub # Import kagglehub for dataset download
-import medmnist # Import medmnist
-from medmnist.dataset import PneumoniaMNIST # Import the specific dataset class
-
-
 # Dataset: PneumoniaMNIST
 # Using kagglehub to download the dataset
 
