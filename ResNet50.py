@@ -21,6 +21,23 @@ import medmnist # Import medmnist
 from medmnist.dataset import PneumoniaMNIST # Import the specific dataset class
 
 
+from IPython import get_ipython
+from IPython.display import display
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, models, transforms
+from sklearn.metrics import f1_score, roc_auc_score
+from torch.utils.data import DataLoader, random_split
+import os
+import shutil # Import shutil for removing directories
+import tarfile # Import tarfile for extracting .tar.gz files
+import kagglehub # Import kagglehub for dataset download
+import medmnist # Import medmnist
+from medmnist.dataset import PneumoniaMNIST # Import the specific dataset class
+
+
 # Dataset: PneumoniaMNIST
 # Using kagglehub to download the dataset
 
@@ -220,81 +237,78 @@ for epoch in range(num_epochs):
 model.eval()
 running_correct_val = 0
 running_total_val = 0
-# Initialize these lists BEFORE the validation loop
 y_true_epoch, y_pred_epoch, y_prob_epoch = [], [], []
 
 with torch.no_grad():
     for inputs_val, labels_val in val_loader:
         inputs_val, labels_val = inputs_val.to(device), labels_val.to(device)
-        # Squeeze validation labels as well
         if labels_val.ndim > 1 and labels_val.size(-1) == 1:
-             labels_val = labels_val.squeeze(-1)
+            labels_val = labels_val.squeeze(-1)
 
         outputs_val = model(inputs_val)
-
-        _, predicted_val = torch.max(outputs_val.data, 1)
-        running_total_val += labels_val.size(0)
-        running_correct_val += (predicted_val == labels_val).sum().item()
-
         probs_val = torch.softmax(outputs_val, dim=1)
+        _, predicted_val = torch.max(outputs_val, 1)
+
         y_true_epoch.extend(labels_val.cpu().numpy())
         y_pred_epoch.extend(predicted_val.cpu().numpy())
-    
 
-# Collect probabilities for the positive class
-# For PneumoniaMNIST, typically label 1 corresponds to 'Pneumonia'
+        # ✅ FIX: Append ONLY the class-1 (pneumonia) probs
+        pneumonia_probs = probs_val[:, 1].cpu().numpy()  # shape: (batch_size,)
+        y_prob_epoch.extend(pneumonia_probs.tolist())
+
+        running_total_val += labels_val.size(0)
+        running_correct_val += (predicted_val == labels_val).sum().item()
+      
+# Collect probabilities for the positive class (class 1 = pneumonia)
 if num_classes > 1:
-     # Use the index for 'pneumonia' label as the positive class index
-     # MedMNIST labels are usually 0 for Normal, 1 for Pneumonia
-     positive_class_label_name = 'pneumonia'
-     # Find the index corresponding to 'pneumonia'
-     positive_class_idx = -1
-     for idx, name in info['label'].items():
-         if name.lower() == positive_class_label_name:
-             # Convert the string index to an integer
-             positive_class_idx = int(idx)
-             break
+    positive_class_label_name = 'pneumonia'
+    positive_class_idx = -1
+    for idx, name in info['label'].items():
+        if name.lower() == positive_class_label_name:
+            positive_class_idx = int(idx)
+            break
 
-     if positive_class_idx != -1:
-         y_prob_epoch.extend(probs_val[:, positive_class_idx].cpu().numpy())
-     else:
-         # Fallback or error if 'pneumonia' label is not found
-         print(f"Warning: Label '{positive_class_label_name}' not found in dataset info.")
-         # You might need to inspect the dataset labels to determine the positive class index
-         # For PneumoniaMNIST, it's typically 1.
-         y_prob_epoch.extend(probs_val[:, 1].cpu().numpy()) # Assuming 1 is the positive class index
+    if positive_class_idx != -1:
+        y_prob_epoch.extend(probs_val[:, positive_class_idx].cpu().numpy())
+    else:
+        print(f"Warning: Label '{positive_class_label_name}' not found in dataset info.")
+        y_prob_epoch.extend(probs_val[:, 1].cpu().numpy())  # Default to class 1
 else:
-     # Handle case with only one class if necessary, though unlikely for this problem
-     y_prob_epoch.extend(probs_val[:, 0].cpu().numpy()) # Or handle differently
+    y_prob_epoch.extend(probs_val[:, 0].cpu().numpy())
 
-
+# --------------------------
+# Calculate validation metrics
 epoch_val_acc = running_correct_val / running_total_val
 print(f"Validation Accuracy: {epoch_val_acc:.4f}")
 
-# Calculate validation F1 and AUC if there are at least two classes
+# Ensure all lists are the same length
+min_len = min(len(y_true_epoch), len(y_pred_epoch), len(y_prob_epoch))
+y_true_epoch = y_true_epoch[:min_len]
+y_pred_epoch = y_pred_epoch[:min_len]
+y_prob_epoch = y_prob_epoch[:min_len]
+
+# Calculate metrics if validation set has more than one class
 if num_classes > 1 and len(set(y_true_epoch)) > 1:
     try:
-        # Use the index for 'pneumonia' label as the positive class index for binary metrics
+        # Re-find the positive class index in case it's needed
         positive_class_label_name = 'pneumonia'
         positive_class_idx = -1
         for idx, name in info['label'].items():
             if name.lower() == positive_class_label_name:
-                # Convert the string index to an integer
                 positive_class_idx = int(idx)
                 break
 
         if positive_class_idx != -1:
-             val_f1 = f1_score(y_true_epoch, y_pred_epoch, average='binary', pos_label=positive_class_idx)
-             # roc_auc_score requires scores/probabilities for the positive class
-             val_auc = roc_auc_score(y_true_epoch, y_prob_epoch)
-             print(f"Validation F1 Score: {val_f1:.4f}, Validation AUC: {val_auc:.4f}")
+            val_f1 = f1_score(y_true_epoch, y_pred_epoch, average='binary', pos_label=positive_class_idx)
+            val_auc = roc_auc_score(y_true_epoch, y_prob_epoch)
+            print(f"Validation F1 Score: {val_f1:.4f}, Validation AUC: {val_auc:.4f}")
         else:
-             print(f"Could not calculate validation metrics: Label '{positive_class_label_name}' not found in dataset info.")
-
+            print(f"Could not calculate validation metrics: Label '{positive_class_label_name}' not found in dataset info.")
 
     except ValueError as e:
-         print(f"Could not calculate validation metrics: {e}. This can happen if only one class is present in the validation batch for binary metrics.")
-
+        print(f"Could not calculate validation metrics: {e}. This can happen if only one class is present in the validation batch for binary metrics.")
+else:
+    print("Only one class present in validation set — skipping F1 and AUC.")
 
 # Evaluation on Validation Set (Final)
 print("\nFinal Validation Results:")
@@ -398,3 +412,4 @@ if num_classes > 1 and len(set(y_true_test)) > 1:
          print(f"Could not calculate test metrics: {e}")
 else:
      print("Cannot calculate F1 and AUC for test set (less than 2 classes or only one class in true labels).")
+
