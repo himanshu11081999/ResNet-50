@@ -234,7 +234,7 @@ with torch.no_grad():
         y_true_epoch.extend(labels_val.cpu().numpy())
         y_pred_epoch.extend(predicted_val.cpu().numpy())
 
-        # ✅ FIX: Append ONLY the class-1 (pneumonia) probs
+        # FIX: Append ONLY the class-1 (pneumonia) probs
         pneumonia_probs = probs_val[:, 1].cpu().numpy()  # shape: (batch_size,)
         y_prob_epoch.extend(pneumonia_probs.tolist())
 
