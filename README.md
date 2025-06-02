@@ -17,7 +17,7 @@ source myenv/bin/activate
 pip install -r requirements.txt
 
 # Run the training script (inside a Jupyter notebook or Python script)
-ResNet50.py
+python ResNet50.py
 ```
 
 ## 📊 Evaluation Metrics
