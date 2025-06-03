@@ -176,7 +176,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.fc.parameters(), lr=1e-4)
 
 # Training Loop
-num_epochs = 1 # Define the number of epochs
+num_epochs = 5 # Define the number of epochs
 for epoch in range(num_epochs):
     # Ensure the cell defining 'model' has been run before this cell
     model.train()
