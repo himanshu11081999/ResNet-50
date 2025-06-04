@@ -20,27 +20,27 @@ pip install -r requirements.txt
 python ResNet50.py
 ```
 
-## 📊 Evaluation Metrics
+## Evaluation Metrics
 - **F1 Score**: Reflects balance between sensitivity (recall) and precision.
 - **AUC-ROC**: Clinical relevance in identifying true disease cases vs. false positives.
 - **Accuracy**: General performance indicator.
 
-## 🧠 Model
+## Model
 - **Backbone**: ResNet-50 pre-trained on ImageNet
 - Final layer modified to output 2 classes (pneumonia, normal)
 - Only the final fully connected layer was fine-tuned
 
-## 🧪 Hyperparameters
+## Hyperparameters
 - Learning Rate: `1e-4`
 - Batch Size: `32`
 - Epochs: `1` (adjustable)
 - Optimizer: `Adam`
 - Loss Function: `CrossEntropyLoss`
 
-## 🔐 Class Imbalance Handling
+## Class Imbalance Handling
 - Dataset is balanced (checked using label counts in MedMNIST)
 - Oversampling / data augmentation (e.g., horizontal flip) was applied
 
-## 🛡️ Overfitting Mitigation
+## Overfitting Mitigation
 - Data augmentation (flip, resize)
 - Early stopping can be added in extended training
