@@ -3,11 +3,11 @@
 
 This project fine-tunes a ResNet-50 model to classify chest X-ray images into pneumonia or normal using the PneumoniaMNIST dataset.
 
-## 📦 Dataset
+## Dataset
 - Dataset: [PneumoniaMNIST](https://www.kaggle.com/datasets/rijulshr/pneumoniamnist/data)
 - Format: `.npz`, processed using the `medmnist` library.
 
-## 🚀 How to Run
+## How to Run
 
 ```bash
 # set path to your directory 
